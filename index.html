@@ -1,0 +1,1532 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FightForge · Smart MMA Training Tracker</title>
+  <meta name="description"
+    content="FightForge is a native Android app that turns a phone camera into an MMA performance tracker: on-device pose estimation, dual-fighter tracking, recovery tracking and an AI coach. No wearables.">
+  <meta property="og:title" content="FightForge · Smart MMA Training Tracker">
+  <meta property="og:description"
+    content="Camera-only MMA analytics on Android. On-device pose estimation, dual-fighter tracking, AI coach.">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg2: #161b22;
+      --bg3: #1c2330;
+      --line: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --red: #e5383b;
+      --red2: #ff6b6b;
+      --green: #3fb950;
+      --amber: #d29922;
+      --blue: #58a6ff;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 110px
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 var(--sans);
+      -webkit-font-smoothing: antialiased
+    }
+
+    a {
+      color: var(--blue);
+      text-decoration: none
+    }
+
+    a:hover {
+      text-decoration: underline
+    }
+
+    img {
+      max-width: 100%;
+      display: block
+    }
+
+    code,
+    .mono {
+      font-family: var(--mono)
+    }
+
+    code {
+      background: rgba(110, 118, 129, .25);
+      padding: .15em .4em;
+      border-radius: 6px;
+      font-size: .88em
+    }
+
+    /* ---------- top bar (GitHub-ish) ---------- */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--line)
+    }
+
+    .topbar .row {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 14px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .octo {
+      width: 40px;
+      height: 40px;
+      flex: none
+    }
+
+    .crumb {
+      font-size: 18px
+    }
+
+    .crumb b {
+      font-weight: 600
+    }
+
+    .crumb .sep {
+      color: var(--muted);
+      margin: 0 4px
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 1px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500
+    }
+
+    .badge.private {
+      border-color: #6e4a1a;
+      color: var(--amber)
+    }
+
+    .topbar .spacer {
+      flex: 1
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #21262d;
+      border: 1px solid #363b42;
+      color: var(--text);
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    .btn:hover {
+      background: #30363d;
+      text-decoration: none
+    }
+
+    .btn.primary {
+      background: var(--red);
+      border-color: #ff7b7d;
+      color: #fff
+    }
+
+    .btn.primary:hover {
+      background: #c92d30
+    }
+
+    .tabs {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 8px 12px 0;
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: none
+    }
+
+    .tabs a {
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 17px;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      opacity: .8
+    }
+
+    .tabs a:hover {
+      background: #21262d;
+      border-radius: 8px 8px 0 0;
+      text-decoration: none;
+      opacity: 1
+    }
+
+    .tabs a.on {
+      border-bottom-color: var(--red);
+      font-weight: 600;
+      opacity: 1
+    }
+
+    /* ---------- layout ---------- */
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 32px
+    }
+
+    @media(max-width:980px) {
+      .wrap {
+        grid-template-columns: minmax(0, 1fr)
+      }
+    }
+
+    main,
+    aside {
+      min-width: 0
+    }
+
+    .readme {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--bg);
+      overflow: hidden
+    }
+
+    .readme>.head {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 18px;
+      font-size: 13.5px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .readme>.body {
+      padding: 6px 34px 40px
+    }
+
+    @media(max-width:640px) {
+      .readme>.body {
+        padding: 6px 18px 30px
+      }
+    }
+
+    .readme h2 {
+      font-size: 1.65rem;
+      margin: 2.4em 0 .7em;
+      padding-bottom: .3em;
+      border-bottom: 1px solid var(--line);
+      letter-spacing: -.01em;
+      line-height: 1.25
+    }
+
+    .readme h3 {
+      font-size: 1.15rem;
+      margin: 1.6em 0 .4em
+    }
+
+    .readme p {
+      margin: .7em 0;
+      color: #d0d7de
+    }
+
+    .lead {
+      font-size: 1.12rem;
+      color: #e6edf3 !important
+    }
+
+    /* ---------- hero ---------- */
+    .hero {
+      position: relative;
+      margin: 26px -34px 0;
+      padding: 56px 34px 44px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: radial-gradient(900px 340px at 85% -10%, rgba(229, 56, 59, .28), transparent 60%), radial-gradient(700px 300px at -10% 110%, rgba(229, 56, 59, .14), transparent 60%), linear-gradient(180deg, #12171f, #0d1117)
+    }
+
+    @media(max-width:640px) {
+      .hero {
+        margin: 26px -18px 0;
+        padding: 40px 18px 34px
+      }
+    }
+
+    .hero .kick {
+      font: 600 12px var(--mono);
+      letter-spacing: .16em;
+      color: var(--red2);
+      text-transform: uppercase
+    }
+
+    .hero h1 {
+      font-size: clamp(2.6rem, 7vw, 4.6rem);
+      line-height: 1;
+      margin: .25em 0 .15em;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -.03em;
+      border: 0;
+      padding: 0
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, #fff, #ffb4b5 55%, var(--red));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent
+    }
+
+    .hero .tag {
+      font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+      color: #c9d1d9;
+      max-width: 640px;
+      margin: .4em 0 1.2em
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 0
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font: 600 12px var(--mono);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #161b22;
+      color: #c9d1d9
+    }
+
+    .chip i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block
+    }
+
+    .chip.r i {
+      background: var(--red)
+    }
+
+    .chip.b i {
+      background: var(--blue)
+    }
+
+    .chip.a i {
+      background: var(--amber)
+    }
+
+    .heroCta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px
+    }
+
+    .heroPhones {
+      display: flex;
+      gap: 14px;
+      margin-top: 38px;
+      align-items: flex-end
+    }
+
+    .heroPhones img {
+      width: min(30%, 190px);
+      filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .6))
+    }
+
+    .heroPhones img:nth-child(2) {
+      transform: translateY(-18px);
+      width: min(34%, 215px)
+    }
+
+    @media(max-width:560px) {
+      .heroPhones img:nth-child(3) {
+        display: none
+      }
+
+      .heroPhones img {
+        width: 46% !important
+      }
+    }
+
+    /* ---------- stats ---------- */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin: 26px 0 0
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      background: var(--bg2);
+      border-radius: 10px;
+      padding: 16px 14px
+    }
+
+    .stat b {
+      display: block;
+      font-size: 2rem;
+      line-height: 1.1;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.02em
+    }
+
+    .stat b em {
+      font-style: normal;
+      color: var(--red2)
+    }
+
+    .stat span {
+      font-size: 12.5px;
+      color: var(--muted)
+    }
+
+    /* ---------- feature cards ---------- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 14px;
+      margin: 18px 0
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--bg2);
+      border-radius: 12px;
+      padding: 18px 18px 16px;
+      position: relative;
+      transition: .2s
+    }
+
+    .card:hover {
+      border-color: #5a2a2c;
+      transform: translateY(-2px)
+    }
+
+    .card .ic {
+      font-size: 22px
+    }
+
+    .card h3 {
+      margin: .35em 0 .25em;
+      font-size: 1.02rem
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 14.5px;
+      color: #aeb7c0
+    }
+
+    .card .tagline {
+      font: 600 11px var(--mono);
+      color: var(--red2);
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    /* ---------- gallery ---------- */
+    .rail {
+      display: flex;
+      gap: 22px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding: 12px 4px 22px;
+      margin: 8px -8px 0;
+      scrollbar-color: #30363d transparent
+    }
+
+    .shot {
+      flex: 0 0 auto;
+      width: 250px;
+      scroll-snap-align: start;
+      text-align: center
+    }
+
+    .shot img {
+      width: 100%;
+      cursor: zoom-in;
+      border-radius: 30px;
+      transition: .25s;
+      filter: drop-shadow(0 14px 24px rgba(0, 0, 0, .55))
+    }
+
+    .shot img:hover {
+      transform: translateY(-4px) scale(1.02)
+    }
+
+    .shot figcaption {
+      margin-top: 10px;
+      font-size: 13.5px;
+      color: var(--muted)
+    }
+
+    .shot figcaption b {
+      display: block;
+      color: var(--text);
+      font-size: 14.5px
+    }
+
+    .shot.long .scrollbox {
+      height: 518px;
+      overflow-y: auto;
+      border-radius: 26px;
+      border: 6px solid #1c1f26;
+      background: #000;
+      scrollbar-width: thin
+    }
+
+    .shot.long .scrollbox img {
+      border-radius: 0;
+      filter: none;
+      cursor: zoom-in
+    }
+
+    .hint {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin: 0
+    }
+
+    /* ---------- figures ---------- */
+    .fig {
+      margin: 20px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg2)
+    }
+
+    .fig .pad {
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      place-items: center
+    }
+
+    .fig .pad img {
+      max-height: 540px;
+      width: auto;
+      margin: 0 auto;
+      cursor: zoom-in
+    }
+
+    .fig figcaption {
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--line)
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    @media(max-width:760px) {
+      .two {
+        grid-template-columns: 1fr
+      }
+    }
+
+    /* ---------- pipeline ---------- */
+    .pipe {
+      list-style: none;
+      margin: 20px 0;
+      padding: 0;
+      display: grid;
+      gap: 0
+    }
+
+    .pipe li {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 14px;
+      padding: 0 0 22px;
+      position: relative
+    }
+
+    .pipe li:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 21px;
+      top: 44px;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(var(--red), #4a1718)
+    }
+
+    .pipe .n {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--red), #8f1c1f);
+      display: grid;
+      place-items: center;
+      font: 800 17px var(--mono);
+      color: #fff
+    }
+
+    .pipe h3 {
+      margin: 2px 0 2px;
+      font-size: 1.02rem
+    }
+
+    .pipe p {
+      margin: 0;
+      font-size: 14.5px;
+      color: #aeb7c0
+    }
+
+    /* ---------- challenges ---------- */
+    .chal {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--red);
+      border-radius: 10px;
+      background: var(--bg2);
+      padding: 16px 18px;
+      margin: 12px 0
+    }
+
+    .chal h3 {
+      margin: 0 0 6px;
+      font-size: 1.02rem
+    }
+
+    .chal .row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 10px;
+      font-size: 14.5px;
+      margin: 4px 0
+    }
+
+    .chal .row>b:first-child {
+      font: 700 11px var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-top: 3px
+    }
+
+    .chal .row.fix>b:first-child {
+      color: var(--green)
+    }
+
+    .chal .row.bug>b:first-child {
+      color: var(--red2)
+    }
+
+    @media(max-width:560px) {
+      .chal .row {
+        grid-template-columns: 1fr;
+        gap: 0
+      }
+    }
+
+    /* ---------- tables / tree ---------- */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 16px 0;
+      font-size: 14.5px;
+      display: block;
+      overflow-x: auto
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 8px 14px;
+      text-align: left
+    }
+
+    th {
+      background: var(--bg2)
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(255, 255, 255, .02)
+    }
+
+    .tree {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 16px 0;
+      background: var(--bg)
+    }
+
+    .tree .r {
+      display: grid;
+      grid-template-columns: 28px 190px 1fr;
+      gap: 6px;
+      padding: 9px 14px;
+      border-top: 1px solid var(--line);
+      font-size: 14px;
+      align-items: center
+    }
+
+    .tree .r:first-child {
+      border-top: 0;
+      background: var(--bg2);
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .tree .r .f {
+      font-family: var(--mono);
+      color: var(--blue)
+    }
+
+    .tree .r .d {
+      color: var(--muted)
+    }
+
+    .tree .r .f.file {
+      color: var(--text)
+    }
+
+    @media(max-width:620px) {
+      .tree .r {
+        grid-template-columns: 24px 1fr
+      }
+
+      .tree .r .d {
+        grid-column: 2
+      }
+    }
+
+    /* ---------- sidebar ---------- */
+    aside {
+      font-size: 14px
+    }
+
+    aside .box {
+      padding: 0 0 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--line)
+    }
+
+    aside h4 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 600
+    }
+
+    aside p {
+      margin: 0 0 10px;
+      color: #c9d1d9
+    }
+
+    aside ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+      color: var(--muted)
+    }
+
+    aside ul li b {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .topic {
+      background: rgba(56, 139, 253, .15);
+      color: var(--blue);
+      border-radius: 999px;
+      padding: 2px 11px;
+      font-size: 12.5px;
+      font-weight: 500
+    }
+
+    .lang {
+      display: flex;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 6px 0 10px
+    }
+
+    .lang span {
+      display: block
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 12.5px;
+      color: var(--muted)
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px
+    }
+
+    .lock {
+      border: 1px dashed #6e4a1a;
+      background: rgba(210, 153, 34, .07);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+      color: #e3b341
+    }
+
+    .lock b {
+      display: block;
+      margin-bottom: 2px
+    }
+
+    .sticky {
+      position: sticky;
+      top: 122px
+    }
+
+    /* ---------- callout ---------- */
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--blue);
+      background: rgba(56, 139, 253, .07);
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 14.5px
+    }
+
+    .callout.warn {
+      border-left-color: var(--amber);
+      background: rgba(210, 153, 34, .07)
+    }
+
+    .cta {
+      margin-top: 44px;
+      border: 1px solid #5a2a2c;
+      border-radius: 14px;
+      padding: 30px;
+      text-align: center;
+      background: radial-gradient(500px 200px at 50% 0%, rgba(229, 56, 59, .22), transparent 70%), var(--bg2)
+    }
+
+    .cta h2 {
+      border: 0;
+      margin: 0 0 6px;
+      padding: 0;
+      font-size: 1.7rem
+    }
+
+    .cta p {
+      color: #b6bec7
+    }
+
+    footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px 50px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center
+    }
+
+    /* ---------- lightbox ---------- */
+    #lb {
+      position: fixed;
+      inset: 0;
+      background: rgba(1, 4, 9, .92);
+      display: none;
+      place-items: center;
+      z-index: 100;
+      padding: 20px;
+      cursor: zoom-out
+    }
+
+    #lb.on {
+      display: grid
+    }
+
+    #lb img {
+      max-height: 94vh;
+      max-width: 96vw;
+      width: auto;
+      border-radius: 10px;
+      background: #fff0
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      * {
+        transition: none !important;
+        scroll-behavior: auto !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============ GitHub-style header ============ -->
+  <header class="topbar">
+    <div class="row">
+      <div class="octo"><img src="img/submark_trans.png" alt=""></div>
+      <div class="crumb"><span style="color:var(--muted)">DhanikaJ</span><span class="sep">/</span><b>FightForge</b>
+      </div>
+      <span class="badge">Android · Java</span>
+      <div class="spacer"></div>
+      <a class="btn primary" href="#contact">Request a walkthrough</a>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a class="on" href="#overview">README</a>
+      <a href="#screens">Screens</a>
+      <a href="#vision">Vision pipeline</a>
+      <a href="#engineering">Engineering</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#results">Results</a>
+      <a href="#stack">Stack</a>
+      <a href="#roadmap">Roadmap</a>
+    </nav>
+  </header>
+
+  <div class="wrap">
+    <main>
+      <article class="readme" id="overview">
+        <div class="body">
+
+          <!-- ============ HERO ============ -->
+          <section class="hero">
+            <div class="kick">// native android · on-device computer vision</div>
+            <h1><span>FIGHTFORGE</span></h1>
+            <p class="tag">Train smart. Fight smarter. Your phone's camera becomes a full MMA performance tracker:
+              strikes, takedowns, ground time and recovery, with <b>zero wearables</b> and zero cloud inference.</p>
+            <div class="chips">
+              <span class="chip"><i></i>Android 7.0 → 14 (API 24–34)</span>
+              <span class="chip r"><i></i>MediaPipe BlazePose · 33 landmarks</span>
+              <span class="chip a"><i></i>Firebase · offline-first</span>
+              <span class="chip b"><i></i>Llama-3 AI coach</span>
+            </div>
+            <div class="heroPhones" aria-hidden="true">
+              <img src="img/live-session.webp" alt="">
+              <img src="img/sparring-summary.webp" alt="">
+              <img src="img/coach-panel.webp" alt="">
+            </div>
+          </section>
+
+          <div class="stats">
+            <div class="stat"><b>129</b><span>Java source files</span></div>
+            <div class="stat"><b>6</b><span>architectural layers</span></div>
+            <div class="stat"><b>30</b><span>days, concept to working app</span></div>
+            <div class="stat"><b>22–28<em>fps</em></b><span>on-device pose tracking</span></div>
+            <div class="stat"><b>3–5<em>ms</em></b><span>motion analysis per frame</span></div>
+            <div class="stat"><b>97<em>%</em></b><span>fighter ID accuracy (separated)</span></div>
+          </div>
+
+          <h2>⚡ The pitch</h2>
+          <p class="lead">Elite fighters get sensor-packed gyms and a sports-science team. Everyone else gets a notebook
+            and a coach yelling “that was a good one!”</p>
+          <p>FightForge closes that gap. Prop a phone against a water bottle, hit <b>Start</b>, and it watches the
+            session: counting strikes, spotting takedowns, tracking who is who during sparring, logging how you recover,
+            and handing the numbers to an AI coach that actually knows your session. Everything runs on a mid-range
+            Android phone.</p>
+          <p>Existing options need $200+ smart gloves (strikes only, no grappling), or they are glorified stopwatches.
+            FightForge covers the full MMA lifecycle in one app: <b>train → track → recover → get coached → run the
+              gym.</b></p>
+
+          <div class="callout warn">
+            <b>🔒 Why the source isn't public:</b> FightForge started as a university module (Handheld Device
+            Programming II) and is intended to grow into a commercial client product. This page is the public technical
+            showcase. Code walkthroughs are available on request.
+          </div>
+
+          <!-- ============ FEATURES ============ -->
+          <h2>🥊 What it does</h2>
+          <div class="grid">
+            <div class="card">
+              <div class="ic">🎯</div><span class="tagline">Computer vision</span>
+              <h3>Camera-only strike detection</h3>
+              <p>Frame differencing on a downscaled bitmap plus pose-based wrist velocity, with a cooldown so one punch
+                is one punch.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🤼</div><span class="tagline">Grappling aware</span>
+              <h3>Takedowns, ground state, sub attempts</h3>
+              <p>Pose geometry detects hip drops, sustained horizontal posture and wrist-crosses-midline. This is not
+                just a boxing counter.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🥋</div><span class="tagline">Beta · flagship</span>
+              <h3>Dual-fighter AI sparring</h3>
+              <p>Tap each fighter once to calibrate a colour profile. Two skeletons are tracked and every strike is
+                attributed to the right athlete.</p>
+            </div>
+            <div class="card">
+              <div class="ic">⏱️</div><span class="tagline">Rock-solid</span>
+              <h3>Foreground-service sessions</h3>
+              <p>Screen off, app backgrounded, phone in your gym bag: the timer survives. Pause, resume, stop, all from
+                the notification.</p>
+            </div>
+            <div class="card">
+              <div class="ic">📝</div><span class="tagline">Live annotation</span>
+              <h3>Quick tags + voice notes</h3>
+              <p>Tag Landed, Takedown, Clinch, Sub Attempt or Knockdown mid-session, or record a voice note and read it
+                back as timeline chips.</p>
+            </div>
+            <div class="card">
+              <div class="ic">💤</div><span class="tagline">Recovery engine</span>
+              <h3>Readiness, not guesswork</h3>
+              <p>Daily sleep, soreness, mood and weight check-ins, injury logging by body location, and a colour-coded
+                readiness pill on your dashboard.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🤖</div><span class="tagline">Groq · Llama-3</span>
+              <h3>AI coach with memory</h3>
+              <p>Multi-turn chat with a combat-sports system prompt, typing indicator and a daily token budget that
+                resets at midnight.</p>
+            </div>
+            <div class="card">
+              <div class="ic">📍</div><span class="tagline">Maps</span>
+              <h3>Nearby gym finder</h3>
+              <p>Dark-themed Google Map, distance-sorted list, one-tap call or directions, and cached results to keep it
+                fast.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🛡️</div><span class="tagline">For coaches</span>
+              <h3>Full admin panel</h3>
+              <p>Fighter directory with live search, injury flags, assigned training plans, gym-wide broadcasts and an
+                audit log.</p>
+            </div>
+            <div class="card">
+              <div class="ic">📶</div><span class="tagline">Gym basements exist</span>
+              <h3>Offline-first sync</h3>
+              <p>Record with no signal. A Room-backed queue and WorkManager sync everything when you're back online.</p>
+            </div>
+            <div class="card">
+              <div class="ic">📊</div><span class="tagline">Analytics</span>
+              <h3>Volume, intensity, streaks</h3>
+              <p>Weekly volume, intensity trend and a streak calendar, with milestone animations every 7 days.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🔐</div><span class="tagline">Auth</span>
+              <h3>Email + Google sign-in</h3>
+              <p>Role-based access (fighter / coach / admin) with email verification enforced on every dashboard load,
+                not just at login.</p>
+            </div>
+          </div>
+
+          <!-- ============ SCREENS ============ -->
+          <h2 id="screens">📱 See it in action</h2>
+          <p>Real screenshots from a physical Android device. Swipe through, and tap any screen to zoom.</p>
+          <div class="rail" role="list">
+            <figure class="shot" role="listitem"><img src="img/login.webp" alt="FightForge login screen" loading="lazy">
+              <figcaption><b>Login</b>Email or Google</figcaption>
+            </figure>
+            <figure class="shot long" role="listitem">
+              <div class="scrollbox"><img src="img/dashboard.webp" alt="FightForge dashboard, full length"
+                  loading="lazy"></div>
+              <figcaption><b>Dashboard</b>Streak, readiness, coach plan, AI coach. Scroll inside.</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/session-setup.webp" alt="Session setup screen"
+                loading="lazy">
+              <figcaption><b>Session setup</b>Type + timed, rounds or open</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/live-session.webp" alt="Live training session"
+                loading="lazy">
+              <figcaption><b>Live session</b>Quick tags &amp; voice notes</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/live-sparring.webp"
+                alt="Live sparring with skeleton overlay" loading="lazy">
+              <figcaption><b>Live sparring</b>Skeleton overlay, round timer</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/sparring-summary.webp"
+                alt="Sparring summary with round breakdown" loading="lazy">
+              <figcaption><b>Sparring summary</b>Per-round breakdown</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/recovery.webp" alt="Recovery check-in" loading="lazy">
+              <figcaption><b>Recovery</b>Sleep, soreness, mood, injuries</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/analytics.webp" alt="Analytics" loading="lazy">
+              <figcaption><b>Analytics</b>Volume, intensity, streak</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/ai-coach.webp" alt="AI Coach chat" loading="lazy">
+              <figcaption><b>AI coach</b>Llama-3 via Groq</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/gym-map.webp" alt="Nearby gyms map" loading="lazy">
+              <figcaption><b>Nearby gyms</b>Map view</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/gym-list.webp" alt="Nearby gyms list" loading="lazy">
+              <figcaption><b>Gym list</b>Distance-sorted, one-tap directions</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/coach-panel.webp" alt="Coach admin panel" loading="lazy">
+              <figcaption><b>Coach panel</b>Directory, flags, plans, audit log</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/broadcast.webp" alt="Coach broadcast notification"
+                loading="lazy">
+              <figcaption><b>Broadcasts</b>Coach → whole gym</figcaption>
+            </figure>
+            <figure class="shot" role="listitem"><img src="img/settings.webp" alt="Settings" loading="lazy">
+              <figcaption><b>Settings</b>Call coach, share, delete account</figcaption>
+            </figure>
+          </div>
+          <p class="hint">← swipe →</p>
+
+          <!-- ============ VISION ============ -->
+          <h2 id="vision">🧠 The vision pipeline <small style="font-weight:400;color:var(--muted);font-size:.6em">(the
+              part I'm proudest of)</small></h2>
+          <p>MediaPipe alone can't track two fighters, and a phone in a human hand shakes. So FightForge chains <b>three
+              cheap signals</b> into something more reliable than any one of them:</p>
+          <ol class="pipe">
+            <li>
+              <div class="n">1</div>
+              <div>
+                <h3>GyroStabiliser: “is the camera even steady?”</h3>
+                <p>Integrates gyroscope angular velocity between frames. If the camera rotated more than
+                  <code>0.15 rad</code> (≈ 8.6°), the frame's motion is vetoed before it can create a phantom punch.
+                </p>
+              </div>
+            </li>
+            <li>
+              <div class="n">2</div>
+              <div>
+                <h3>HSV colour profiling: “who is who?”</h3>
+                <p>Tap each fighter's torso once. The app builds an HSV profile and matches pose regions against it on a
+                  160×120 bitmap. Hue is far less sensitive to gym lighting than RGB.</p>
+              </div>
+            </li>
+            <li>
+              <div class="n">3</div>
+              <div>
+                <h3>MediaPipe Pose Landmarker (numPoses = 2)</h3>
+                <p>Two independent 33-point skeletons per frame, with a GPU → CPU → lite-model fallback cascade so it
+                  launches on more devices.</p>
+              </div>
+            </li>
+            <li>
+              <div class="n">4</div>
+              <div>
+                <h3>PoseEventDetector: “was that a strike?”</h3>
+                <p>Wrist velocity, arm-extension direction and opponent-zone validation. Strikes are classified head vs
+                  body from the motion centroid.</p>
+              </div>
+            </li>
+            <li>
+              <div class="n">5</div>
+              <div>
+                <h3>SparringStatsTracker: “what does it mean?”</h3>
+                <p>Thread-safe per-fighter counters with combo-burst detection (3+ strikes in a 2 s window).</p>
+              </div>
+            </li>
+          </ol>
+          <figure class="fig">
+            <div class="pad"><img src="img/pipeline.webp" alt="Dual-fighter AI pipeline layer stack" loading="lazy">
+            </div>
+            <figcaption>Dual-fighter pipeline, per video frame</figcaption>
+          </figure>
+          <div class="callout"><b>Honest limit:</b> in clinches where torsos overlap, identity accuracy drops to ~74%.
+            By design, ambiguous frames are <i>skipped</i> rather than guessed, so the stats stay trustworthy at the
+            cost of slight undercounting.</div>
+
+          <!-- ============ ENGINEERING ============ -->
+          <h2 id="engineering">🛠️ Hard problems, solved</h2>
+          <p>The interesting bugs. Each one reshaped the design.</p>
+
+          <div class="chal">
+            <h3>📷 The camera-shake phantom punches</h3>
+            <div class="row bug"><b>Problem</b><span>Handheld movement changed the whole frame, so frame differencing
+                counted a flood of “strikes” that never happened.</span></div>
+            <div class="row fix"><b>Fix</b><span>Gyroscope-based motion veto (<code>GyroStabiliser</code>), with no
+                optical flow needed. False positives dropped an estimated <b>87%</b> in a deliberate shake test.</span>
+            </div>
+          </div>
+
+          <div class="chal">
+            <h3>🧍🧍 Landmark “hopping” between fighters</h3>
+            <div class="row bug"><b>Problem</b><span>Single-pose MediaPipe kept jumping between the two bodies, so the
+                opponent's punches were credited to you.</span></div>
+            <div class="row fix"><b>Fix</b><span><code>numPoses=2</code> plus colour-profile torso matching to assign
+                each skeleton to Fighter A or B. Shipped as parallel <code>_v2</code> classes so the stable v1 pipeline
+                was never put at risk.</span></div>
+          </div>
+
+          <div class="chal">
+            <h3>📵 Offline-first Firestore, configured twice</h3>
+            <div class="row bug"><b>Problem</b><span>Persistence settings can only be applied once per instance, and two
+                repositories both initialised it, so the second call crashed.</span></div>
+            <div class="row fix"><b>Fix</b><span>Guarded settings call that tolerates the conflict and keeps the first
+                valid configuration, so full offline writes still work.</span></div>
+          </div>
+
+          <div class="chal">
+            <h3>📝 Notes that outlive the screen</h3>
+            <div class="row bug"><b>Problem</b><span>Session notes are created live, but the session's Firestore ID
+                doesn't exist until the summary screen. Notes in memory would die with the process.</span></div>
+            <div class="row fix"><b>Fix</b><span>Draft pattern: notes stream to
+                <code>sessionNotesDraft/{startMs}/notes</code>, then get copied to the canonical path on save.</span>
+            </div>
+          </div>
+
+          <div class="chal">
+            <h3>🎙️ The half-second voice note crash</h3>
+            <div class="row bug"><b>Problem</b><span>Android's <code>MediaRecorder.stop()</code> throws if called within
+                ~500 ms of start, which is easy to trigger with an accidental mic tap.</span></div>
+            <div class="row fix"><b>Fix</b><span>Catch, delete the corrupt file, show a helpful toast. No crash.</span>
+            </div>
+          </div>
+
+          <div class="chal">
+            <h3>📐 Android 15's 16 KB page size</h3>
+            <div class="row bug"><b>Problem</b><span>Native <code>.so</code> libraries from MediaPipe and CameraX
+                crashed on launch on 16 KB-page targets.</span></div>
+            <div class="row fix"><b>Fix</b><span>Uncompressed JNI packaging (<code>useLegacyPackaging = false</code>) so
+                the linker aligns pages at install. Verified on 16 KB emulator targets.</span></div>
+          </div>
+
+          <!-- ============ ARCHITECTURE ============ -->
+          <h2 id="architecture">🏗️ Architecture</h2>
+          <p>A strict six-layer design (UI → ViewModel → Repository → Foundation → Intelligence → Hardware) so the
+            riskiest subsystem, the AI vision pipeline, could be built and tested in isolation.</p>
+          <figure class="fig">
+            <div class="pad"><img src="img/arch.webp" alt="Six-layer architecture diagram" loading="lazy"></div>
+            <figcaption>Six-layer architectural model</figcaption>
+          </figure>
+          <div class="two">
+            <figure class="fig" style="margin:0">
+              <div class="pad"><img src="img/er.webp" alt="Firestore ER diagram" loading="lazy"></div>
+              <figcaption>Firestore data model, per-user isolation</figcaption>
+            </figure>
+            <figure class="fig" style="margin:0">
+              <div class="pad"><img src="img/state.webp" alt="Live session state machine" loading="lazy"></div>
+              <figcaption>Live session state machine</figcaption>
+            </figure>
+          </div>
+          <figure class="fig">
+            <div class="pad"><img src="img/nav.webp" alt="Application navigation flow" loading="lazy"></div>
+            <figcaption>Navigation: single-activity, Jetpack Navigation graph</figcaption>
+          </figure>
+          <div class="two">
+            <figure class="fig" style="margin:0">
+              <div class="pad"><img src="img/auth-seq.webp" alt="Authentication sequence" loading="lazy"></div>
+              <figcaption>Auth &amp; email-verification sequence</figcaption>
+            </figure>
+            <figure class="fig" style="margin:0">
+              <div class="pad"><img src="img/gym-seq.webp" alt="Gym discovery sequence" loading="lazy"></div>
+              <figcaption>Gym discovery sequence</figcaption>
+            </figure>
+          </div>
+
+          <h3>📁 Repo layout</h3>
+          <div class="tree">
+            <div class="r"><span></span><span>Package</span><span>What lives there</span></div>
+            <div class="r"><span>📁</span><span class="f">camera/</span><span class="d">CameraX, FrameDiffer,
+                GyroStabiliser, PoseLandmarkerHelper, PoseEventDetector (v1 + v2), colour profiling, overlays</span>
+            </div>
+            <div class="r"><span>📁</span><span class="f">model/</span><span class="d">Firestore &amp; auth
+                repositories, Room database, domain models (sessions, recovery, injuries, notes, gyms)</span></div>
+            <div class="r"><span>📁</span><span class="f">network/</span><span class="d">Groq AI client, sync queue
+                manager, WorkManager workers, HTTP layer</span></div>
+            <div class="r"><span>📁</span><span class="f">services/</span><span class="d">SessionForegroundService, the
+                resilient timer</span></div>
+            <div class="r"><span>📁</span><span class="f">receivers/</span><span class="d">Boot, battery, reminder and
+                notification-action receivers</span></div>
+            <div class="r"><span>📁</span><span class="f">ui/</span><span class="d">Activities, fragments, adapters
+                (DiffUtil-powered lists) across 8 sub-packages</span></div>
+            <div class="r"><span>📁</span><span class="f">admin/</span><span class="d">Coach panel &amp; fighter
+                directory</span></div>
+            <div class="r"><span>📁</span><span class="f">utils/</span><span class="d">Constants, notifications,
+                reminders, sounds, stats tracker, loading-state helper</span></div>
+            <div class="r"><span>📄</span><span class="f file">assets/</span><span class="d">MediaPipe
+                <code>pose_landmarker_lite</code> + <code>_full</code> models</span></div>
+          </div>
+
+          <h3>🧩 Details recruiters might enjoy</h3>
+          <ul>
+            <li><b>Battery-aware:</b> a low-battery broadcast drops frame processing to every third frame.</li>
+            <li><b>Boot-proof reminders:</b> daily 08:00 training and 21:00 recovery alarms are re-scheduled after
+              reboot or app update.</li>
+            <li><b>Polish pass:</b> shared skeleton/shimmer loading helper, inline retry error cards,
+              <code>DiffUtil</code> on five adapters, haptic 3-2-1-GO countdown, relative timestamps.
+            </li>
+            <li><b>Permissions done right:</b> every dangerous permission is requested at runtime with a rationale
+              dialog. Voice notes never leave the device without consent.</li>
+            <li><b>Notification channels:</b> four separate channels (session, sparring, reminders, coach notices).</li>
+          </ul>
+
+          <!-- ============ RESULTS ============ -->
+          <h2 id="results">📈 Results</h2>
+          <p>Measured on a mid-range phone (Snapdragon 778G, 8 GB RAM, Android 13). Informal, but real.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Result</th>
+                <th>Target</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Motion analysis (160×120 frame)</td>
+                <td><b>3–5 ms</b> / frame</td>
+                <td>≤ 8 ms</td>
+              </tr>
+              <tr>
+                <td>Pose tracking, 1 fighter (lite, GPU)</td>
+                <td><b>22–28 FPS</b></td>
+                <td>≥ 15 FPS</td>
+              </tr>
+              <tr>
+                <td>Pose tracking, 2 fighters</td>
+                <td><b>16–20 FPS</b></td>
+                <td>≥ 15 FPS</td>
+              </tr>
+              <tr>
+                <td>Fighter ID accuracy, separated</td>
+                <td><b>97%</b></td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>Fighter ID accuracy, clinch</td>
+                <td><b>74%</b> (ambiguous frames skipped)</td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>Camera-shake false strikes</td>
+                <td><b>≈ 87% fewer</b> with the gyro veto</td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>Tap-to-calibrate setup</td>
+                <td><b>&lt; 2 s</b> per fighter</td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>AI coach time-to-first-token</td>
+                <td><b>&lt; 450 ms</b> (Groq)</td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>Offline sync after reconnect (4G)</td>
+                <td><b>≤ 2.5 s</b>, 100% of pending sessions</td>
+                <td>n/a</td>
+              </tr>
+              <tr>
+                <td>Heap during active sparring</td>
+                <td><b>~92 MB</b>, stable</td>
+                <td>n/a</td>
+              </tr>
+            </tbody>
+          </table>
+          <h3>🧪 Testing approach</h3>
+          <p>JUnit tests cover colour-zone logic, fighter colour profiles, models, the session manager and analytics
+            view-model states. Espresso instrumented tests cover login, registration and sparring-setup navigation
+            (standard vs dual-AI routing) using <code>TestNavHostController</code>. A custom
+            <code>CountingIdlingResource</code> on the countdown overlay removes flakiness from animated UI, and
+            <code>BoundedMatcher</code>s verify the sparring-summary RecyclerView. Known gaps (no DI framework for
+            mocking singletons) are documented openly in the full report.
+          </p>
+
+          <!-- ============ STACK ============ -->
+          <h2 id="stack">🧰 Tech stack</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Technology</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Language / SDK</td>
+                <td>Java 8+, minSdk 24 / targetSdk 34, Gradle 8.13, AGP 8.2.2</td>
+              </tr>
+              <tr>
+                <td>Computer vision</td>
+                <td>MediaPipe Tasks Vision 0.10.14 (PoseLandmarker), custom HSV colour profiling</td>
+              </tr>
+              <tr>
+                <td>Camera &amp; sensors</td>
+                <td>Jetpack CameraX 1.3.2, gyroscope, MediaRecorder, Vibrator</td>
+              </tr>
+              <tr>
+                <td>Backend</td>
+                <td>Firebase Auth (email + Google OAuth 2.0), Cloud Firestore with offline persistence</td>
+              </tr>
+              <tr>
+                <td>Local &amp; sync</td>
+                <td>Room (sync queue), WorkManager 2.9.0</td>
+              </tr>
+              <tr>
+                <td>AI coach</td>
+                <td>Groq Llama-3 via Retrofit 2 + OkHttp 4.12</td>
+              </tr>
+              <tr>
+                <td>Maps</td>
+                <td>Google Maps SDK 18.2 + Places, fused location</td>
+              </tr>
+              <tr>
+                <td>UI</td>
+                <td>Jetpack Navigation 2.7.7, ViewBinding, Material, MPAndroidChart 3.1.0, Glide</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ============ ROADMAP ============ -->
+          <h2 id="roadmap">🚀 Roadmap</h2>
+          <div class="grid">
+            <div class="card">
+              <div class="ic">🧬</div>
+              <h3>Action classification</h3>
+              <p>3D-CNN / LSTM over pose sequences to tell jab from hook, or a slip from a duck.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🎯</div>
+              <h3>YOLO context awareness</h3>
+              <p>Detect heavy bags, pads and headgear so the app knows if you're bagwork-ing or sparring.</p>
+            </div>
+            <div class="card">
+              <div class="ic">⌚</div>
+              <h3>Wear OS fusion</h3>
+              <p>Wrist IMU + camera data fusion for impact force and direction.</p>
+            </div>
+            <div class="card">
+              <div class="ic">☁️</div>
+              <h3>Cloud sync upgrades</h3>
+              <p>Voice notes to Firebase Storage, Cloud Functions for analytics pre-aggregation.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🧑‍⚖️</div>
+              <h3>Referee mode</h3>
+              <p>Ringside dual-fighter dashboard with per-round comparison stats.</p>
+            </div>
+            <div class="card">
+              <div class="ic">🍎</div>
+              <h3>iOS port</h3>
+              <p>SwiftUI + the same MediaPipe and Firebase stack.</p>
+            </div>
+          </div>
+
+          <!-- ============ CTA ============ -->
+          <div class="cta" id="contact">
+            <h2>Want to see it run?</h2>
+            <p>I'm happy to do a live demo or a code walkthrough of the vision pipeline, architecture, or sync layer.
+            </p>
+            <div class="heroCta" style="justify-content:center">
+              <!-- TODO: replace the three links below with your real details -->
+              <a class="btn primary" href="mailto:dhanikagimhana22@gmail.com">✉️ Email me</a>
+              <a class="btn" href="https://www.linkedin.com/in/DhanikaJ">LinkedIn</a>
+              <a class="btn" href="https://github.com/DhanikaJ">GitHub profile</a>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside>
+      <div class="sticky">
+        <div class="box">
+          <h4>About</h4>
+          <p>Smart MMA training &amp; performance tracker. Camera-only strike, takedown and sparring analytics, recovery
+            tracking and an AI coach, all on-device.</p>
+          <div class="topics">
+            <span class="topic">android</span><span class="topic">java</span><span class="topic">mediapipe</span><span
+              class="topic">computer-vision</span><span class="topic">pose-estimation</span><span
+              class="topic">firebase</span><span class="topic">mma</span><span class="topic">sports-tech</span><span
+              class="topic">llm</span>
+          </div>
+        </div>
+        <div class="box">
+          <div class="lock"><b>🔒 Source is private</b>Intended to become a client product.</div>
+        </div>
+        <div class="box">
+          <h4>Languages</h4>
+          <div class="lang"><span style="flex:1;background:#b07219"></span></div>
+          <div class="legend"><span><i style="background:#b07219"></i>Java</span></div>
+        </div>
+        <div class="box">
+          <h4>Project facts</h4>
+          <ul>
+            <li>📦 <b>129</b> Java files · 9 packages</li>
+            <li>🎨 <b>36</b> XML layouts · 62 drawables</li>
+            <li>📱 Android <b>7.0 → 14</b></li>
+            <li>🎓 Handheld Device Programming II</li>
+            <li>👤 Built by <b>Dhanika Jagodaarachchi</b></li>
+          </ul>
+        </div>
+        <div class="box" style="border:0;margin:0;padding:0">
+          <a class="btn primary" style="width:100%;justify-content:center" href="#contact">Request a walkthrough</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>FightForge · All Rights Reserved · © Dhanika Jagodaarachchi</footer>
+
+  <div id="lb" role="dialog" aria-label="Image preview"><img alt=""></div>
+  <script>
+    (function () {
+      var lb = document.getElementById('lb'), big = lb.querySelector('img');
+      document.querySelectorAll('.shot img, .fig img').forEach(function (i) {
+        i.addEventListener('click', function () { big.src = i.src; big.alt = i.alt; lb.classList.add('on') });
+      });
+      lb.addEventListener('click', function () { lb.classList.remove('on') });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') lb.classList.remove('on') });
+      // tab highlight on scroll
+      var links = [].slice.call(document.querySelectorAll('.tabs a'));
+      var map = links.map(function (a) { return document.querySelector(a.getAttribute('href')) });
+      function onScroll() {
+        var y = window.scrollY + 140, cur = 0;
+        map.forEach(function (el, i) { if (el && el.getBoundingClientRect().top + window.scrollY <= y) cur = i });
+        links.forEach(function (a, i) { a.classList.toggle('on', i === cur) });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+    })();
+  </script>
+</body>
+
+</html>
